@@ -1,5 +1,7 @@
 using AspireDemo.ApiService.EntityFramework;
 using AspireDemo.ApiService.Extensions;
+using RabbitMQ.Client;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 builder.AddNpgsqlDbContext<ProductDbContext>(connectionName: "catalogdb");
+
+builder.AddRabbitMQClient(connectionName: "messaging");
 
 // Add services to the container.
 builder.Services.AddProblemDetails();
@@ -50,6 +54,27 @@ app.MapGet("/weatherforecast", () =>
 app.MapGet("/products", (ProductDbContext dbContext) =>
 {
     return dbContext.Products.ToList();
+});
+
+app.MapPost("/notify", static async (IConnection connection, IConfiguration config, string message) =>
+{
+    var aspireEventsQueue = config.GetValue<string>("MESSAGING:EVENTSQUEUE");
+
+    using var channel = connection.CreateModel();
+    channel.QueueDeclare(queue: aspireEventsQueue,
+                         durable: false,
+                         exclusive: false,
+                         autoDelete: false,
+                         arguments: null);
+
+    var body = Encoding.UTF8.GetBytes(message);
+
+    channel.BasicPublish(exchange: string.Empty,
+                         routingKey: aspireEventsQueue,
+                          mandatory: false,
+                         basicProperties: null,
+                         body: body);
+    Console.WriteLine("A message has been published to the queue.");
 });
 
 app.MapDefaultEndpoints();

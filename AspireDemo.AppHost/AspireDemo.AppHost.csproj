@@ -12,11 +12,13 @@
   <ItemGroup>
     <ProjectReference Include="..\AspireDemo.ApiService\AspireDemo.ApiService.csproj" />
     <ProjectReference Include="..\AspireDemo.Web\AspireDemo.Web.csproj" />
+    <ProjectReference Include="..\AspireDemo.WorkerService\AspireDemo.WorkerService.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" Version="9.1.0" />
     <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="9.1.0" />
+    <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="9.1.0" />
     <PackageReference Include="Aspire.Hosting.Redis" Version="9.1.0" />
   </ItemGroup>
 
