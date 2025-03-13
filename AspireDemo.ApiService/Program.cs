@@ -1,6 +1,8 @@
 using AspireDemo.ApiService.EntityFramework;
 using AspireDemo.ApiService.Extensions;
 using RabbitMQ.Client;
+using System.Diagnostics.Metrics;
+using System.Diagnostics;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +19,11 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+
+var weatherForecastMeter = new Meter("weather.backend", "1.0.0");
+var weatherForecastCount = weatherForecastMeter.CreateCounter<int>("forecast.count");
+var activitySource = new ActivitySource("weather.backend");
 
 var app = builder.Build();
 
@@ -38,18 +45,25 @@ var summaries = new[]
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
 
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/weatherforecast", (ILogger<Program> logger) =>
 {
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
+    using Activity? weatherSpan = activitySource.StartActivity("ForecastActivity");
+    var forecats = new WeatherForecast[5];
+    for (var i = 0; i < forecats.Length; i++)
+    {
+        weatherForecastCount.Add(1);
+        forecats[i] = new WeatherForecast
         (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+            DateOnly.FromDateTime(DateTime.Now.AddDays(i)),
             Random.Shared.Next(-20, 55),
             summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-});
+        );
+        weatherSpan?.SetTag("Env", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
+    }
+    logger.LogInformation("Sending weather forecats: {foreacts}", forecats);
+    return forecats;
+})
+.WithName("GetWeatherForecast");
 
 app.MapGet("/products", (ProductDbContext dbContext) =>
 {
