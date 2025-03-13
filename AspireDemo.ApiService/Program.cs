@@ -1,7 +1,12 @@
+using AspireDemo.ApiService.EntityFramework;
+using AspireDemo.ApiService.Extensions;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire components.
 builder.AddServiceDefaults();
+
+builder.AddNpgsqlDbContext<ProductDbContext>(connectionName: "catalogdb");
 
 // Add services to the container.
 builder.Services.AddProblemDetails();
@@ -20,6 +25,10 @@ if (app.Environment.IsDevelopment())
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
 
+// ProductDb Migration and seed
+app.UseProductDbMigration();
+app.UseProductDbDataSeeder();
+
 var summaries = new[]
 {
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
@@ -36,6 +45,11 @@ app.MapGet("/weatherforecast", () =>
         ))
         .ToArray();
     return forecast;
+});
+
+app.MapGet("/products", (ProductDbContext dbContext) =>
+{
+    return dbContext.Products.ToList();
 });
 
 app.MapDefaultEndpoints();
