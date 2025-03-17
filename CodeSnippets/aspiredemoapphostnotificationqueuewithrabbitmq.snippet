@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+	<CodeSnippet Format="1.0.0">
+		<Header>
+			<Title>AspireDemo.AppHost.NotificationQueueWithRabbitMq</Title>
+			<Shortcut>aspiredemoapphostnotificationqueuewithrabbitmq</Shortcut>
+		</Header>
+		<Snippet>
+			<Code Language="CSharp">
+				<![CDATA[
+const string NotificationsQueueEnvName = "MESSAGING__NOTIFICATIONSQUEUE";
+
+var notificationsQueue = builder.Configuration.GetValue<string>("Messaging:NotificationsQueue");
+var rabbitmq = builder.AddRabbitMQ("messaging").WithManagementPlugin();
+				]]>
+			</Code>
+		</Snippet>
+	</CodeSnippet>
+</CodeSnippets>

@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+	<CodeSnippet Format="1.0.0">
+		<Header>
+			<Title>AspireDemo.AppHost.NotificationQueueWithRabbitMq</Title>
+			<Shortcut>aspiredemoapphostworkerservice</Shortcut>
+		</Header>
+		<Snippet>
+			<Code Language="CSharp">
+				<![CDATA[
+builder.AddProject<Projects.AspireDemo_WorkerService>("workerservice")
+       .WithEnvironment(NotificationsQueueEnvName, notificationsQueue)
+       .WithReference(rabbitmq)
+       .WaitFor(rabbitmq);
+				]]>
+			</Code>
+		</Snippet>
+	</CodeSnippet>
+</CodeSnippets>

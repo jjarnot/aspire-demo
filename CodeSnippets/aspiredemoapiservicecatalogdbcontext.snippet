@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+	<CodeSnippet Format="1.0.0">
+		<Header>
+			<Title>AspireDemo.ApiService.EntityFramework.CatalogDbContext</Title>
+			<Shortcut>aspiredemoapiservicecatalogdbcontext</Shortcut>
+		</Header>
+		<Snippet>
+			<Code Language="CSharp">
+				<![CDATA[
+using Microsoft.EntityFrameworkCore;
+
+namespace AspireDemo.ApiService.EntityFramework;
+
+public class CatalogDbContext : DbContext
+{
+    public CatalogDbContext(DbContextOptions<CatalogDbContext> options) : base(options)
+    {
+    }
+
+    public DbSet<Product> Products => Set<Product>();
+}
+		
+				]]>
+			</Code>
+		</Snippet>
+	</CodeSnippet>
+</CodeSnippets>
