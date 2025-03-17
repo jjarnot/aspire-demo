@@ -1,3 +1,4 @@
+using AspireDemo.ServiceDefaults;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,7 +49,7 @@ public static class Extensions
                 metrics.AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation()
-                    .AddMeter("weather.backend");
+                    .AddMeter(AspireDemo.ServiceDefaults.OpenTelemetry.DefaultMeterName);
             })
             .WithTracing(tracing =>
             {
@@ -56,7 +57,7 @@ public static class Extensions
                     // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                     //.AddGrpcClientInstrumentation()
                     .AddHttpClientInstrumentation()
-                    .AddSource("weather.backend");
+                    .AddSource(AspireDemo.ServiceDefaults.OpenTelemetry.DefaultSourceName);
             });
 
         builder.AddOpenTelemetryExporters();

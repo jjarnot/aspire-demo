@@ -1,0 +1,104 @@
+namespace AspireDemo.WorkerService;
+
+using System;
+using System.Diagnostics;
+using System.Text;
+using AspireDemo.ServiceDefaults;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using OpenTelemetry;
+using OpenTelemetry.Context.Propagation;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+
+public class NotificationsHandler : IHostedService
+{
+    private readonly ILogger<NotificationsHandler> _logger;
+    private readonly IConfiguration _config;
+    private readonly IConnection _messageConnection;
+    private IModel? _messageChannel;
+    private EventingBasicConsumer consumer;
+    private readonly ActivitySource _activitySource = new(OpenTelemetry.DefaultSourceName);
+
+    public NotificationsHandler(ILogger<NotificationsHandler> logger, IConfiguration config, IConnection messageConnection)
+    {
+        _logger = logger;
+        _config = config;
+        _messageConnection = messageConnection;
+    }
+
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Message handler is staring...");
+
+        var queueName = _config.GetValue<string>("MESSAGING:NOTIFICATIONSQUEUE");
+        _messageChannel = _messageConnection.CreateModel();
+        _messageChannel.QueueDeclare(queue: queueName,
+            durable: false,
+            exclusive: false,
+            autoDelete: false,
+            arguments: null);
+
+        consumer = new EventingBasicConsumer(_messageChannel);
+        consumer.Received += ProcessMessageAsync;
+
+        _messageChannel.BasicConsume(queue: queueName, autoAck: true, consumer: consumer);
+
+        return Task.CompletedTask;
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Message handler is stoping...");
+        consumer.Received -= ProcessMessageAsync;
+        _messageChannel?.Close();
+        _messageConnection.Close();
+        return Task.CompletedTask;
+    }
+
+    private void ProcessMessageAsync(object? sender, BasicDeliverEventArgs args)
+    {
+        // reference: https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/examples/MicroserviceExample/Utils/Messaging/MessageReceiver.cs
+        // Extract the PropagationContext of the upstream parent from the message headers.
+        var parentContext = Propagators.DefaultTextMapPropagator.Extract(default, args.BasicProperties, this.ExtractTraceContextFromBasicProperties);
+        Baggage.Current = parentContext.Baggage;
+
+        // Start an activity with a name following the semantic convention of the OpenTelemetry messaging specification.
+        // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md#span-name
+        var activityName = $"{args.RoutingKey} receive";
+
+        using var activity = _activitySource.StartActivity(activityName, ActivityKind.Consumer, parentContext.ActivityContext);
+        try
+        {
+            var message = Encoding.UTF8.GetString(args.Body.Span.ToArray());
+
+            _logger.LogInformation("Received message text: {text}", message);
+
+            activity?.SetTag("env", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
+        }
+        catch (Exception ex)
+        {
+            activity?.AddException(ex);
+            _logger.LogError(ex, "Message processing failed.");
+        }
+    }
+
+    private IEnumerable<string> ExtractTraceContextFromBasicProperties(IBasicProperties props, string key)
+    {
+        try
+        {
+            if (props.Headers.TryGetValue(key, out var value))
+            {
+                var bytes = (byte[])value;
+                return new[] { Encoding.UTF8.GetString(bytes) };
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to extract trace context.");
+        }
+
+        return Enumerable.Empty<string>();
+    }
+}

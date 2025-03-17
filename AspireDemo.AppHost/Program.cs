@@ -4,7 +4,9 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 var rabbitmq = builder.AddRabbitMQ("messaging").WithManagementPlugin();
 
-var eventsQueue = builder.Configuration.GetValue<string>("Messaging:EventsQueue");
+const string NotificationsQueueEnvName = "MESSAGING__NOTIFICATIONSQUEUE";
+
+var notificationsQueue = builder.Configuration.GetValue<string>("Messaging:NotificationsQueue");
 
 var postgres = builder
         .AddPostgres("postgres")
@@ -19,7 +21,7 @@ var cache = builder.AddRedis("cache");
 var apiService = builder.AddProject<Projects.AspireDemo_ApiService>("apiservice")
                 .WithReference(catalogDb)
                 .WaitFor(catalogDb)
-                .WithEnvironment("MESSAGING__EVENTSQUEUE", eventsQueue)
+                .WithEnvironment(NotificationsQueueEnvName, notificationsQueue)
                 .WithReference(rabbitmq)
                 .WaitFor(rabbitmq);
 
@@ -29,7 +31,7 @@ builder.AddProject<Projects.AspireDemo_Web>("webfrontend")
     .WithReference(apiService);
 
 builder.AddProject<Projects.AspireDemo_WorkerService>("workerservice")
-       .WithEnvironment("MESSAGING__EVENTSQUEUE", eventsQueue)
+       .WithEnvironment(NotificationsQueueEnvName, notificationsQueue)
        .WithReference(rabbitmq)
        .WaitFor(rabbitmq);
 
