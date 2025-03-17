@@ -2,9 +2,9 @@
 
 namespace AspireDemo.ApiService.EntityFramework;
 
-public class ProductDbContext : DbContext
+public class CatalogDbContext : DbContext
 {
-    public ProductDbContext(DbContextOptions<ProductDbContext> options) : base(options)
+    public CatalogDbContext(DbContextOptions<CatalogDbContext> options) : base(options)
     {
     }
 

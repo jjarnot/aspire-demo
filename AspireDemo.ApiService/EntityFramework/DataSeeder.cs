@@ -2,7 +2,7 @@
 
 public class DataSeeder
 {
-    public static void Seed(ProductDbContext dbContext)
+    public static void Seed(CatalogDbContext dbContext)
     {
         if (dbContext.Products.Any())
             return;

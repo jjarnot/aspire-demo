@@ -8,14 +8,14 @@ public static class WebApplicationExtensions
     public static void UseProductDbMigration(this WebApplication webApp)
     {
         using var scope = webApp.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
         dbContext.Database.Migrate();
     }
 
     public static void UseProductDbDataSeeder(this WebApplication webApp)
     {
         using var scope = webApp.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
         DataSeeder.Seed(dbContext);
     }
 }

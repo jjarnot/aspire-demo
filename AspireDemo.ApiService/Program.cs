@@ -13,7 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add service defaults & Aspire components.
 builder.AddServiceDefaults();
 
-builder.AddNpgsqlDbContext<ProductDbContext>(connectionName: "catalogdb");
+builder.AddNpgsqlDbContext<CatalogDbContext>(connectionName: "catalogdb");
 
 builder.AddRabbitMQClient(connectionName: "messaging");
 
@@ -81,7 +81,7 @@ app.MapGet("/weatherforecast", (ILogger<Program> logger) =>
     return forecast;
 });
 
-app.MapGet("/products", (ProductDbContext dbContext) =>
+app.MapGet("/products", (CatalogDbContext dbContext) =>
 {
     return dbContext.Products.ToList();
 });
