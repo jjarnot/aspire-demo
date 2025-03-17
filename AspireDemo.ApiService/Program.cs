@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Text;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry;
-using AspireDemo.ApiService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +21,15 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Reference: .NET Aspire Dashboard & Telemetry
+// https://www.youtube.com/watch?v=BB9q0FfVZl4&list=PLdo4fOcmZ0oWMbEO7CiaDZh6cqSTU_lzJ&index=10
+// Create custom meter for metrics
+var weatherForecastMeter = new Meter(AspireDemo.ServiceDefaults.OpenTelemetry.DefaultMeterName, "1.0.0");
+var weatherForecastCounter = weatherForecastMeter.CreateCounter<int>("forecast.count");
+// Create custom ActivitySource
+var activitySource = new ActivitySource(AspireDemo.ServiceDefaults.OpenTelemetry.DefaultSourceName);
+
 
 var app = builder.Build();
 
@@ -41,15 +49,6 @@ var summaries = new[]
 {
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
-
-// Reference: .NET Aspire Dashboard & Telemetry
-// https://www.youtube.com/watch?v=BB9q0FfVZl4&list=PLdo4fOcmZ0oWMbEO7CiaDZh6cqSTU_lzJ&index=10
-
-// Create custom meter for metrics
-var weatherForecastMeter = new Meter(AspireDemo.ServiceDefaults.OpenTelemetry.DefaultMeterName, "1.0.0");
-var weatherForecastCounter = weatherForecastMeter.CreateCounter<int>("forecast.count");
-// Create custom ActivitySource
-var activitySource = new ActivitySource(AspireDemo.ServiceDefaults.OpenTelemetry.DefaultSourceName);
 
 app.MapGet("/weatherforecast", (ILogger<Program> logger) =>
 {
@@ -98,7 +97,8 @@ app.MapPost("/notifications", async (IConnection connection, IConfiguration conf
     using var span = activitySource.StartActivity(activityName, ActivityKind.Producer);
     span?.SetTag("env", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
 
-    using var channel = RabbitMqHelper.CreateModelAndDeclareQueue(connection, eventsQueue!);
+    using var channel = connection.CreateModel();
+    channel.QueueDeclare(queue: eventsQueue, durable: false, exclusive: false, autoDelete: false, arguments: null);
     var basicProperties = channel.CreateBasicProperties();
 
     ActivityContext contextToInject = default;

@@ -24,7 +24,7 @@ public class ApiServiceClient(HttpClient httpClient)
 
     public async Task<Product[]> GetProductsAsync(CancellationToken cancellationToken = default)
     {
-        return await httpClient.GetFromJsonAsync<Product[]>("/products", cancellationToken) ?? new Product[0];
+        return await httpClient.GetFromJsonAsync<Product[]>("/products", cancellationToken) ?? Array.Empty<Product>();
     }
 }
 
