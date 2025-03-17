@@ -59,7 +59,7 @@ public class NotificationsHandler : IHostedService
 
     private void ProcessMessageAsync(object? sender, BasicDeliverEventArgs args)
     {
-        // reference: https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/examples/MicroserviceExample/Utils/Messaging/MessageReceiver.cs
+        // Reference: https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/examples/MicroserviceExample/Utils/Messaging/MessageReceiver.cs
         // Extract the PropagationContext of the upstream parent from the message headers.
         var parentContext = Propagators.DefaultTextMapPropagator.Extract(default, args.BasicProperties, this.ExtractTraceContextFromBasicProperties);
         Baggage.Current = parentContext.Baggage;
