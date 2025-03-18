@@ -67,15 +67,17 @@ public class NotificationsHandler : IHostedService
         // Start an activity with a name following the semantic convention of the OpenTelemetry messaging specification.
         // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md#span-name
         var activityName = $"{args.RoutingKey} receive";
-
         using var activity = _activitySource.StartActivity(activityName, ActivityKind.Consumer, parentContext.ActivityContext);
         try
         {
+            activity?.SetTag("env", Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT"));
             var message = Encoding.UTF8.GetString(args.Body.Span.ToArray());
-
             _logger.LogInformation("Received message text: {text}", message);
 
-            activity?.SetTag("env", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
+            if(message == "error")
+            {
+                throw new Exception("Message contains error");
+            }
         }
         catch (Exception ex)
         {
