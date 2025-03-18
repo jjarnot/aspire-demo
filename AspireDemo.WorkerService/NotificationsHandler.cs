@@ -74,7 +74,7 @@ public class NotificationsHandler : IHostedService
             var message = Encoding.UTF8.GetString(args.Body.Span.ToArray());
             _logger.LogInformation("Received message text: {text}", message);
 
-            if (message == "error")
+            if (message.Contains("error"))
             {
                 throw new Exception("Message contains error");
             }
@@ -82,7 +82,7 @@ public class NotificationsHandler : IHostedService
         catch (Exception ex)
         {
             activity?.AddException(ex);
-            _logger.LogError(ex, "Message processing failed.");
+            _logger.LogError(ex, "An exception was thrown during message processing.");
         }
     }
 
