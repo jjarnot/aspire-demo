@@ -12,7 +12,7 @@ namespace AspireDemo.ApiService.EntityFramework;
 
 public class DataSeeder
 {
-    public static void Seed(ProductDbContext dbContext)
+    public static void Seed(CatalogDbContext dbContext)
     {
         if (dbContext.Products.Any())
             return;
@@ -22,7 +22,7 @@ public class DataSeeder
         dbContext.Products.Add(new Product { Name = "Test3", Description = "Test 3 description", Price = 12.00m });
         dbContext.SaveChanges();
     }
-}				
+}
 				]]>
 			</Code>
 		</Snippet>
