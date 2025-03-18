@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspireDemo.Web", "AspireDem
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspireDemo.Tests", "AspireDemo.Tests\AspireDemo.Tests.csproj", "{F34A7E36-A34C-7507-66E8-6CC01EEF9656}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspireDemo.WorkerService", "AspireDemo.WorkerService\AspireDemo.WorkerService.csproj", "{C8231401-5A89-F874-C13C-0BB8302E5E58}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,6 +40,10 @@ Global
 		{F34A7E36-A34C-7507-66E8-6CC01EEF9656}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F34A7E36-A34C-7507-66E8-6CC01EEF9656}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F34A7E36-A34C-7507-66E8-6CC01EEF9656}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8231401-5A89-F874-C13C-0BB8302E5E58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8231401-5A89-F874-C13C-0BB8302E5E58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8231401-5A89-F874-C13C-0BB8302E5E58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8231401-5A89-F874-C13C-0BB8302E5E58}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

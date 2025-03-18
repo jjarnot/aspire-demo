@@ -1,0 +1,5 @@
+﻿@ApiHostAddress = http://localhost:5529
+
+### POST notification
+POST {{ApiHostAddress}}/notifications?message=error
+Accept: application/json

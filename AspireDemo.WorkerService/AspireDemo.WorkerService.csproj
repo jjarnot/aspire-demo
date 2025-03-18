@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-AspireDemo.WorkerService-fc19f6b9-445a-470c-9a04-f3065cb8c986</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.RabbitMQ.Client" Version="9.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.3" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AspireDemo.ServiceDefaults\AspireDemo.ServiceDefaults.csproj" />
+	</ItemGroup>
+</Project>

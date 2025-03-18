@@ -1,7 +1,11 @@
 using AspireDemo.ApiService.EntityFramework;
 using AspireDemo.ApiService.Extensions;
+using OpenTelemetry;
+using OpenTelemetry.Context.Propagation;
+using RabbitMQ.Client;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 builder.AddNpgsqlDbContext<CatalogDbContext>("catalogdb");
+builder.AddRabbitMQClient("messaging");
 
 // Add services to the container.
 builder.Services.AddProblemDetails();
@@ -69,6 +74,62 @@ app.MapGet("/products", (CatalogDbContext dbContext) =>
 {
     return dbContext.Products.ToList();
 });
+
+
+// Reference: https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/examples/MicroserviceExample/Utils/Messaging/MessageSender.cs
+app.MapPost("/notifications", async (IConnection connection, IConfiguration config, string message, ILogger<Program> logger) =>
+{
+    var eventsQueue = config.GetValue<string>("MESSAGING:NOTIFICATIONSQUEUE");
+
+    // Start an activity with a name following the semantic convention of the OpenTelemetry messaging specification.
+    // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md#span-name
+    var activityName = $"{eventsQueue} send";
+
+    using var span = activitySource.StartActivity(activityName, ActivityKind.Producer);
+    span?.SetTag("env", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
+
+    using var channel = connection.CreateModel();
+    channel.QueueDeclare(queue: eventsQueue, durable: false, exclusive: false, autoDelete: false, arguments: null);
+    var basicProperties = channel.CreateBasicProperties();
+
+    ActivityContext contextToInject = default;
+    if (span != null)
+    {
+        contextToInject = span.Context;
+    }
+    else if (Activity.Current != null)
+    {
+        contextToInject = Activity.Current.Context;
+    }
+
+    // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
+    Propagators.DefaultTextMapPropagator.Inject(new PropagationContext(contextToInject, Baggage.Current), basicProperties, (IBasicProperties props, string key, string value) =>
+    {
+        try
+        {
+            if (props.Headers == null)
+            {
+                props.Headers = new Dictionary<string, object>();
+            }
+
+            props.Headers[key] = value;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to inject trace context.");
+        }
+    });
+
+    logger.LogInformation("Sending message text: {text}", message);
+
+    channel.BasicPublish(exchange: string.Empty,
+                         routingKey: eventsQueue,
+                         mandatory: false,
+                         basicProperties: basicProperties,
+                         body: Encoding.UTF8.GetBytes(message));
+});
+
+
 
 app.MapDefaultEndpoints();
 
