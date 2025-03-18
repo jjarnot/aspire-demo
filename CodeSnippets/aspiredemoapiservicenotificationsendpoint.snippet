@@ -15,7 +15,7 @@ app.MapPost("/notifications", async (IConnection connection, IConfiguration conf
 
     // Start an activity with a name following the semantic convention of the OpenTelemetry messaging specification.
     // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md#span-name
-    var activityName = $"{eventsQueue} send";
+    var activityName = $$"{eventsQueue} send";
 
     using var span = activitySource.StartActivity(activityName, ActivityKind.Producer);
     span?.SetTag("env", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
