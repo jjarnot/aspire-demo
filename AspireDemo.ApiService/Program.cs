@@ -42,8 +42,8 @@ if (app.Environment.IsDevelopment())
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
 
-app.UseProductDbMigration();
-app.UseProductDbDataSeeder();
+app.UseCatalogDbMigration();
+app.UseCatalogDbDataSeeder();
 
 var summaries = new[]
 {
@@ -88,17 +88,17 @@ app.MapGet("/products", (CatalogDbContext dbContext) =>
 // Reference: https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/examples/MicroserviceExample/Utils/Messaging/MessageSender.cs
 app.MapPost("/notifications", async (IConnection connection, IConfiguration config, string message, ILogger<Program> logger) =>
 {
-    var eventsQueue = config.GetValue<string>("MESSAGING:NOTIFICATIONSQUEUE");
+    var notificationsQueue = config.GetValue<string>("MESSAGING:NOTIFICATIONSQUEUE");
 
     // Start an activity with a name following the semantic convention of the OpenTelemetry messaging specification.
     // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md#span-name
-    var activityName = $"{eventsQueue} send";
+    var activityName = $"{notificationsQueue} send";
 
     using var span = activitySource.StartActivity(activityName, ActivityKind.Producer);
     span?.SetTag("env", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
 
     using var channel = connection.CreateModel();
-    channel.QueueDeclare(queue: eventsQueue, durable: false, exclusive: false, autoDelete: false, arguments: null);
+    channel.QueueDeclare(queue: notificationsQueue, durable: false, exclusive: false, autoDelete: false, arguments: null);
     var basicProperties = channel.CreateBasicProperties();
 
     ActivityContext contextToInject = default;
@@ -132,7 +132,7 @@ app.MapPost("/notifications", async (IConnection connection, IConfiguration conf
     logger.LogInformation("Sending message text: {text}", message);
 
     channel.BasicPublish(exchange: string.Empty,
-                         routingKey: eventsQueue,
+                         routingKey: notificationsQueue,
                          mandatory: false,
                          basicProperties: basicProperties,
                          body: Encoding.UTF8.GetBytes(message));

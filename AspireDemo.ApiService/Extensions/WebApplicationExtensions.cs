@@ -5,14 +5,14 @@ namespace AspireDemo.ApiService.Extensions;
 
 public static class WebApplicationExtensions
 {
-    public static void UseProductDbMigration(this WebApplication webApp)
+    public static void UseCatalogDbMigration(this WebApplication webApp)
     {
         using var scope = webApp.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
         dbContext.Database.Migrate();
     }
 
-    public static void UseProductDbDataSeeder(this WebApplication webApp)
+    public static void UseCatalogDbDataSeeder(this WebApplication webApp)
     {
         using var scope = webApp.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
