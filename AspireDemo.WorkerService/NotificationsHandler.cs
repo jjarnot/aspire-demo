@@ -74,7 +74,7 @@ public class NotificationsHandler : IHostedService
             var message = Encoding.UTF8.GetString(args.Body.Span.ToArray());
             _logger.LogInformation("Received message text: {text}", message);
 
-            if(message == "error")
+            if (message == "error")
             {
                 throw new Exception("Message contains error");
             }
